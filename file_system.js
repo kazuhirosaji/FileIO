@@ -3,7 +3,7 @@ var LOADING = 0;
 var SAVING = 1;
 var REMOVING = 2;
 
-var flag = 0;
+var state = LOADING;
 
 window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
 
@@ -15,7 +15,7 @@ navigator.webkitPersistentStorage.requestQuota (1024*1024*1024, function(bytes) 
 }, onError);
 
 function fileOperation(type) {
-  flag = type;
+  state = type;
   requestFS(grantedBytes);
 }
 
@@ -24,13 +24,13 @@ function requestFS(grantedBytes) {
 }
 
 function onInitFs(fs) {
-  if (flag == SAVING) {
+  if (state == SAVING) {
     console.log("saveFile");
     saveFile(fs);
-  } else if (flag == LOADING) {
+  } else if (state == LOADING) {
     console.log("loadFile");
     loadFile(fs);
-  } else if (flag == REMOVING) {
+  } else if (state == REMOVING) {
     console.log("removeFile");
     removeFile(fs);
   }
