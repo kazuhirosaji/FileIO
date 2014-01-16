@@ -1,88 +1,117 @@
-var grantedBytes = 0;
-var LOADING = 0;
-var SAVING = 1;
-var REMOVING = 2;
+var config = {
+  LOAD : 0,
+  SAVE : 1,
+  REMOVE : 2,
+};
 
-var state = LOADING;
+var onError = function() {console.log ('Error : ', arguments);}
 
-window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
+var file_io = {
+  grantedBytes : 0,
+  is_init : false,
+  op_done : false,
 
-function onError () { console.log ('Error : ', arguments); }
+  init : function(file) {
+    this.grantedBytes = 0,
+    this.state = config.LOAD;
+    this.is_init = false;
+    this.file = file;
+    console.log(this);
+    window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
+    navigator.webkitPersistentStorage.requestQuota (1024*1024*1024, function(bytes) {
+      file_io.initDone(bytes);
+    }, onError);
+  },
 
-navigator.webkitPersistentStorage.requestQuota (1024*1024*1024, function(bytes) {
-  console.log ('requestQuota: ', arguments);
-  grantedBytes = bytes;
-}, onError);
+  initDone : function(bytes) {
+    console.log ('requestQuota: ', arguments);
+    this.grantedBytes = bytes;
+    this.is_init = true;
+  },
 
-function fileOperation(type) {
-  state = type;
-  requestFS(grantedBytes);
-}
+  setText : function(text) {
+    this.text = text;
+    console.log("setText:"+ this.text);
+  },
 
-function requestFS(grantedBytes) {
-    window.webkitRequestFileSystem(window.PERSISTENT, grantedBytes, onInitFs, onError);
-}
+  getText : function() {
+    return this.text;
+  },
 
-function onInitFs(fs) {
-  if (state == SAVING) {
-    console.log("saveFile");
-    saveFile(fs);
-  } else if (state == LOADING) {
+  fileOperation : function(type) {
+    this.state = type;
+    console.log("fileOperation:"+ type);
+    file_io.op_done = false;
+    window.webkitRequestFileSystem(window.PERSISTENT, this.grantedBytes, this.onInitFs, onError);
+  },
+
+  onInitFs : function(fs) {
+    console.log("onInitFs: state="+ file_io.state);
+    if (file_io.state == config.SAVE) {
+      console.log("doSaveFile");
+      file_io.saveFile(fs);
+    } else if (file_io.state == config.LOAD) {
+      file_io.loadFile(fs);
+    } else if (file_io.state == config.REMOVE) {
+      file_io.removeFile(fs);
+    } else {
+      file_io.op_done = true;
+    }
+  },
+
+  saveFile : function(fs) {
+    console.log("saveFile:"+ this.file);
+    fs.root.getFile(this.file, {create: true}, function(fileEntry) {
+      // Create a FileWriter object for our FileEntry (log.txt).
+      fileEntry.createWriter(function(fileWriter) {
+
+        fileWriter.onwriteend = function(e) {
+          console.log('Write completed.');
+          file_io.op_done = true;
+        };
+
+        fileWriter.onerror = function(e) {
+          console.log('Write failed: ' + e.toString());
+          file_io.op_done = true;
+        };
+        var value = file_io.text;
+        console.log("save:text="+ file_io.text);
+
+        // Create a new Blob and write it to log.txt.
+        var bb = new Blob([value]);
+        fileWriter.write(bb);
+      }, onError);
+    }, onError);
+  },
+
+  loadFile : function(fs) {
     console.log("loadFile");
-    loadFile(fs);
-  } else if (state == REMOVING) {
+    fs.root.getFile(this.file, {}, function(fileEntry) {
+
+      // Get a File object representing the file,
+      // then use FileReader to read its contents.
+      fileEntry.file(function(file) {
+         var reader = new FileReader();
+
+         reader.onloadend = function(e) {
+           file_io.text = this.result;
+           console.log(file_io);
+           file_io.op_done = true;
+         };
+         reader.readAsText(file);
+      }, onError);
+    }, onError);
+  },
+
+  removeFile : function(fs) {
     console.log("removeFile");
-    removeFile(fs);
-  }
-}
+    fs.root.getFile(this.file , {create: false}, function(fileEntry) {
 
-function saveFile(fs) {
-  fs.root.getFile('log.txt', {create: true}, function(fileEntry) {
-
-    // Create a FileWriter object for our FileEntry (log.txt).
-    fileEntry.createWriter(function(fileWriter) {
-
-      fileWriter.onwriteend = function(e) {
-        console.log('Write completed.');
-      };
-
-      fileWriter.onerror = function(e) {
-        console.log('Write failed: ' + e.toString());
-      };
-      value = document.getElementById("text").value;
-
-      // Create a new Blob and write it to log.txt.
-      var bb = new Blob([value]);
-      fileWriter.write(bb);
-
+      fileEntry.remove(function() {
+        console.log('File removed.');
+        file_io.op_done = true;
+      }, onError);
     }, onError);
-
-  }, onError);
-}
-
-function loadFile(fs) {
-  fs.root.getFile('log.txt', {}, function(fileEntry) {
-
-    // Get a File object representing the file,
-    // then use FileReader to read its contents.
-    fileEntry.file(function(file) {
-       var reader = new FileReader();
-
-       reader.onloadend = function(e) {
-         document.getElementById("text").value = this.result;
-       };
-       reader.readAsText(file);
-    }, onError);
-
-  }, onError);
-}
-
-function removeFile(fs) {
-  fs.root.getFile('log.txt', {create: false}, function(fileEntry) {
-
-    fileEntry.remove(function() {
-      console.log('File removed.');
-    }, onError);
-  }, onError);
+  },
 }
 
