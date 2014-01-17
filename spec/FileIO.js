@@ -11,6 +11,26 @@ waitsForÇä‹Çﬁità»ç~ÇÃdescribeì‡ÇÃitÇÕíxâÑï]âøÇ≥ÇÍÇÈ*/
     }, "file io can't init", 1000);
   });
 
+  it("ãÛï∂éöÇ≈ÉtÉ@ÉCÉãè„èëÇ´Ç™Ç≈Ç´ÇÈ", function() {
+    file_io.setText("");
+    file_io.fileOperation(config.SAVE);
+    waitsFor(function() {
+      if (file_io.op_done) return true;
+    }, "file operation can't done", 3000);
+
+    runs(function() {
+     file_io.fileOperation(config.LOAD);
+    });
+
+    waitsFor(function() {
+      if (file_io.op_done) return true;
+    }, "file operation can't done", 3000);
+
+    runs(function () {
+  		expect(file_io.getText()).toEqual("");
+  	});
+  });
+
   it("ï€ë∂ÇµÇΩï∂éöóÒÇì«Ç›çûÇﬂÇÈ", function() {
     file_io.setText("saving text");
     file_io.fileOperation(config.SAVE);
@@ -18,13 +38,17 @@ waitsForÇä‹Çﬁità»ç~ÇÃdescribeì‡ÇÃitÇÕíxâÑï]âøÇ≥ÇÍÇÈ*/
       if (file_io.op_done) return true;
     }, "file operation can't done", 3000);
 
-    file_io.setText("");
-    expect(file_io.getText()).toEqual("");
-    // load
-    file_io.fileOperation(config.LOAD);
+    runs(function() {
+      file_io.setText("");
+      expect(file_io.getText()).toEqual("");
+      // load
+     file_io.fileOperation(config.LOAD);
+    });
+
     waitsFor(function() {
       if (file_io.op_done) return true;
     }, "file operation can't done", 3000);
+
     runs(function () {
   		expect(file_io.getText()).toEqual("saving text");
   	});
@@ -34,29 +58,80 @@ waitsForÇä‹Çﬁità»ç~ÇÃdescribeì‡ÇÃitÇÕíxâÑï]âøÇ≥ÇÍÇÈ*/
   it("è„èëÇ´å„ÇÃÉtÉ@ÉCÉãì«Ç›çûÇ›", function() {
     file_io.setText("saving text");
     file_io.fileOperation(config.SAVE);
+    waitsFor(function() {
+      if (file_io.op_done) return true;
+    }, "file operation can't done", 3000);
     // save second time
-    file_io.setText("2nd time saving text!");
-    file_io.fileOperation(config.SAVE);
-    file_io.setText("");
-    expect(file_io.getText()).toEqual("");
+    runs(function () {
+      file_io.setText("2nd time saving text!");
+      file_io.fileOperation(config.SAVE);
+    });
 
+    waitsFor(function() {
+      if (file_io.op_done) return true;
+    }, "file operation can't done", 3000);
+
+    runs(function () {
+      file_io.setText("");
+      expect(file_io.getText()).toEqual("");
+      file_io.fileOperation(config.LOAD);
+    });
     // load
-    file_io.fileOperation(config.LOAD);
-    expect(file_io.getText()).toEqual("2nd time saving text!");
+    waitsFor(function() {
+      if (file_io.op_done) return true;
+    }, "file operation can't done", 3000);
+
+    runs(function () {
+      expect(file_io.getText()).toEqual("2nd time saving text!");
+    });
   });
 
   it("çÌèúå„ÇÃÉtÉ@ÉCÉãì«Ç›èëÇ´", function() {
     // remove
     file_io.setText("saving text");
     file_io.fileOperation(config.SAVE);
-    file_io.fileOperation(config.REMOVE);
-    file_io.fileOperation(config.LOAD);
-    expect(file_io.getText()).toEqual("text empty");
 
-    // save and load after remove.
-    file_io.setText("2nd time saving text!");
-    file_io.fileOperation(config.SAVE);
-    file_io.fileOperation(config.LOAD);
-    expect(file_io.getText()).toEqual("2nd time saving text!");
+    waitsFor(function() {
+      if (file_io.op_done) return true;
+    }, "file operation can't done", 3000);
+
+    runs (function() {
+      file_io.fileOperation(config.REMOVE);
+    });
+
+    waitsFor(function() {
+      if (file_io.op_done) return true;
+    }, "file operation can't done", 3000);
+
+    runs (function() {
+      file_io.fileOperation(config.LOAD);
+    });
+
+    waitsFor(function() {
+      if (file_io.op_done) return true;
+    }, "file operation can't done", 3000);
+
+    runs (function() {
+     expect(file_io.getText()).toEqual("text empty");
+     // save and load after remove.
+     file_io.setText("saving text after remove");
+     file_io.fileOperation(config.SAVE);
+    });
+
+    waitsFor(function() {
+      if (file_io.op_done) return true;
+    }, "file operation can't done", 3000);
+    
+    runs (function() {
+      file_io.fileOperation(config.LOAD);
+    });
+
+    waitsFor(function() {
+      if (file_io.op_done) return true;
+    }, "file operation can't done", 3000);
+
+    runs(function() {
+      expect(file_io.getText()).toEqual("saving text after remove");
+    });
   });
 });

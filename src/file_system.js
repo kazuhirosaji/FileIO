@@ -4,7 +4,16 @@ var config = {
   REMOVE : 2,
 };
 
-var onError = function() {console.log ('Error : ', arguments);}
+var onError = function() {
+  console.log ('Error : ', arguments);
+  file_io.op_done = true;
+}
+
+var onLoadError = function() {
+  console.log ('LoadError : ', arguments);
+  file_io.setText("text empty");
+  file_io.op_done = true;
+}
 
 var file_io = {
   grantedBytes : 0,
@@ -51,6 +60,7 @@ var file_io = {
     console.log("onInitFs: state="+ file_io.state);
     if (file_io.state == config.SAVE) {
       console.log("doSaveFile");
+      file_io.fs = fs;
       file_io.saveFile(fs);
     } else if (file_io.state == config.LOAD) {
       file_io.loadFile(fs);
@@ -61,7 +71,30 @@ var file_io = {
     }
   },
 
+
+
   saveFile : function(fs) {
+    console.log("trancateFile:"+ this.file);
+    fs.root.getFile(this.file, {create: true}, function(fileEntry) {
+      // Create a FileWriter object for our FileEntry (log.txt).
+      fileEntry.createWriter(function(fileWriter) {
+
+        fileWriter.onwriteend = function(e) {
+          console.log('Truncate completed.');
+          file_io.saveFile2(file_io.fs);
+        };
+
+        fileWriter.onerror = function(e) {
+          console.log('Truncate failed: ' + e.toString());
+          file_io.op_done = true;
+        };
+        console.log(fileWriter);
+        fileWriter.truncate(0);
+      }, onError);
+    }, onError);
+  },
+
+  saveFile2 : function(fs) {
     console.log("saveFile:"+ this.file);
     fs.root.getFile(this.file, {create: true}, function(fileEntry) {
       // Create a FileWriter object for our FileEntry (log.txt).
@@ -81,6 +114,7 @@ var file_io = {
 
         // Create a new Blob and write it to log.txt.
         var bb = new Blob([value]);
+        console.log(fileWriter);
         fileWriter.write(bb);
       }, onError);
     }, onError);
@@ -97,12 +131,13 @@ var file_io = {
 
          reader.onloadend = function(e) {
            file_io.text = this.result;
+           console.log("loaddone:"+file_io.text);
            console.log(file_io);
            file_io.op_done = true;
          };
          reader.readAsText(file);
-      }, onError);
-    }, onError);
+      }, onLoadError);
+    }, onLoadError);
   },
 
   removeFile : function(fs) {
