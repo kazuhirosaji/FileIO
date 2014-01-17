@@ -10,6 +10,8 @@ var file_io = {
   grantedBytes : 0,
   is_init : false,
   op_done : false,
+  file : "",
+  state : config.LOAD,
 
   init : function(file) {
     this.grantedBytes = 0,
