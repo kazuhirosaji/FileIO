@@ -1,38 +1,38 @@
-var operate = {
+var OPERATE = {
   LOAD : 0,
   SAVE : 1,
   REMOVE : 2,
-  RESET : 3,
+  DONE : 3
 };
 
 var STATE = {
-  STABLE : 0,
-  LOADING : 1,
-  TRUNCATING : 2,
-  SAVING : 3,
-  REMOVING : 4,
+  UNINIT : 0,
+  STABLE : 1,
+  LOADING : 2,
+  TRUNCATING : 3,
+  SAVING : 4,
+  REMOVING : 5
 }
 
 var onError = function() {
   console.log ('Error : ', arguments);
-  file_io.setState(operate.RESET);
+  file_io.setState(OPERATE.DONE);
 }
 
 var onLoadError = function() {
   console.log ('LoadError : ', arguments);
   file_io.setText("text empty");
-  file_io.setState(operate.RESET);
+  file_io.setState(OPERATE.DONE);
 }
 
 var file_io = {
   grantedBytes : 0,
-  is_init : false,
   file : "",
-  state : STATE.STABLE,
+  state : STATE.UNINIT,
 
   init : function(file) {
     this.grantedBytes = 0,
-    this.is_init = false;
+    this.state = STATE.UNINIT;
     this.file = file;
     console.log(this);
     window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
@@ -44,7 +44,7 @@ var file_io = {
   initDone : function(bytes) {
     console.log ('requestQuota: ', arguments);
     this.grantedBytes = bytes;
-    this.is_init = true;
+    this.state = STATE.STABLE;
   },
 
   setText : function(text) {
@@ -64,20 +64,20 @@ var file_io = {
 
   setState : function(type) {
     switch (type) {
-      case operate.LOAD:
+      case OPERATE.LOAD:
         this.state = STATE.LOADING;
         break;
-      case operate.SAVE:
+      case OPERATE.SAVE:
         if (this.state == STATE.TRUNCATING) {
           this.state = STATE.SAVING;
         } else {
           this.state = STATE.TRUNCATING;
         }
         break;
-      case operate.REMOVE:
+      case OPERATE.REMOVE:
         this.state = STATE.REMOVING;
         break;
-      case operate.RESET:
+      case OPERATE.DONE:
         this.state = STATE.STABLE;
         break;
       default:
@@ -85,6 +85,13 @@ var file_io = {
         console.log("Error: unexpected type="+ type);
         break;
     }
+  },
+
+  isStable : function() {
+    if (this.state == STATE.STABLE) {
+      return true;
+    }
+    return false;
   },
 
   onInitFs : function(fs) {
@@ -103,7 +110,7 @@ var file_io = {
         file_io.truncateFile(fs);
         break;
       default:
-        file_io.setState(operate.RESET);
+        file_io.setState(OPERATE.DONE);
         break;
     }
   },
@@ -116,12 +123,12 @@ var file_io = {
 
         fileWriter.onwriteend = function(e) {
           console.log('Truncate completed.');
-          file_io.fileOperation(operate.SAVE);
+          file_io.fileOperation(OPERATE.SAVE);
         };
 
         fileWriter.onerror = function(e) {
           console.log('Truncate failed: ' + e.toString());
-          file_io.setState(operate.RESET);
+          file_io.setState(OPERATE.DONE);
         };
         console.log(fileWriter);
         fileWriter.truncate(0);
@@ -137,12 +144,12 @@ var file_io = {
 
         fileWriter.onwriteend = function(e) {
           console.log('Write completed.');
-          file_io.setState(operate.RESET);
+          file_io.setState(OPERATE.DONE);
         };
 
         fileWriter.onerror = function(e) {
           console.log('Write failed: ' + e.toString());
-          file_io.setState(operate.RESET);
+          file_io.setState(OPERATE.DONE);
         };
         var value = file_io.text;
         console.log("save:text="+ file_io.text);
@@ -168,7 +175,7 @@ var file_io = {
            file_io.text = this.result;
            console.log("loaddone:"+file_io.text);
            console.log(file_io);
-           file_io.setState(operate.RESET);
+           file_io.setState(OPERATE.DONE);
          };
          reader.readAsText(file);
       }, onLoadError);
@@ -181,7 +188,7 @@ var file_io = {
 
       fileEntry.remove(function() {
         console.log('File removed.');
-        file_io.setState(operate.RESET);
+        file_io.setState(OPERATE.DONE);
       }, onError);
     }, onError);
   },
