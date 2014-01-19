@@ -1,30 +1,37 @@
-var config = {
+var operate = {
   LOAD : 0,
   SAVE : 1,
   REMOVE : 2,
+  RESET : 3,
 };
+
+var STATE = {
+  STABLE : 0,
+  LOADING : 1,
+  TRUNCATING : 2,
+  SAVING : 3,
+  REMOVING : 4,
+}
 
 var onError = function() {
   console.log ('Error : ', arguments);
-  file_io.op_done = true;
+  file_io.setState(operate.RESET);
 }
 
 var onLoadError = function() {
   console.log ('LoadError : ', arguments);
   file_io.setText("text empty");
-  file_io.op_done = true;
+  file_io.setState(operate.RESET);
 }
 
 var file_io = {
   grantedBytes : 0,
   is_init : false,
-  op_done : false,
   file : "",
-  state : config.LOAD,
+  state : STATE.STABLE,
 
   init : function(file) {
     this.grantedBytes = 0,
-    this.state = config.LOAD;
     this.is_init = false;
     this.file = file;
     console.log(this);
@@ -50,30 +57,58 @@ var file_io = {
   },
 
   fileOperation : function(type) {
-    this.state = type;
     console.log("fileOperation:"+ type);
-    file_io.op_done = false;
+    this.setState(type);
     window.webkitRequestFileSystem(window.PERSISTENT, this.grantedBytes, this.onInitFs, onError);
+  },
+
+  setState : function(type) {
+    switch (type) {
+      case operate.LOAD:
+        this.state = STATE.LOADING;
+        break;
+      case operate.SAVE:
+        if (this.state == STATE.TRUNCATING) {
+          this.state = STATE.SAVING;
+        } else {
+          this.state = STATE.TRUNCATING;
+        }
+        break;
+      case operate.REMOVE:
+        this.state = STATE.REMOVING;
+        break;
+      case operate.RESET:
+        this.state = STATE.STABLE;
+        break;
+      default:
+        this.state = STATE.STABLE;
+        console.log("Error: unexpected type="+ type);
+        break;
+    }
   },
 
   onInitFs : function(fs) {
     console.log("onInitFs: state="+ file_io.state);
-    if (file_io.state == config.SAVE) {
-      console.log("doSaveFile");
-      file_io.fs = fs;
-      file_io.saveFile(fs);
-    } else if (file_io.state == config.LOAD) {
-      file_io.loadFile(fs);
-    } else if (file_io.state == config.REMOVE) {
-      file_io.removeFile(fs);
-    } else {
-      file_io.op_done = true;
+    switch (file_io.state) {
+      case STATE.SAVING:
+        file_io.saveFile(fs);
+        break;
+      case STATE.LOADING:
+        file_io.loadFile(fs);
+        break;
+      case STATE.REMOVING:
+        file_io.removeFile(fs);
+        break;
+      case STATE.TRUNCATING:
+        file_io.truncateFile(fs);
+        break;
+      default:
+        file_io.setState(operate.RESET);
+        break;
     }
   },
 
-
-
-  saveFile : function(fs) {
+  truncateFile : function(fs) {
     console.log("trancateFile:"+ this.file);
     fs.root.getFile(this.file, {create: true}, function(fileEntry) {
       // Create a FileWriter object for our FileEntry (log.txt).
@@ -81,12 +116,12 @@ var file_io = {
 
         fileWriter.onwriteend = function(e) {
           console.log('Truncate completed.');
-          file_io.saveFile2(file_io.fs);
+          file_io.fileOperation(operate.SAVE);
         };
 
         fileWriter.onerror = function(e) {
           console.log('Truncate failed: ' + e.toString());
-          file_io.op_done = true;
+          file_io.setState(operate.RESET);
         };
         console.log(fileWriter);
         fileWriter.truncate(0);
@@ -94,7 +129,7 @@ var file_io = {
     }, onError);
   },
 
-  saveFile2 : function(fs) {
+  saveFile : function(fs) {
     console.log("saveFile:"+ this.file);
     fs.root.getFile(this.file, {create: true}, function(fileEntry) {
       // Create a FileWriter object for our FileEntry (log.txt).
@@ -102,12 +137,12 @@ var file_io = {
 
         fileWriter.onwriteend = function(e) {
           console.log('Write completed.');
-          file_io.op_done = true;
+          file_io.setState(operate.RESET);
         };
 
         fileWriter.onerror = function(e) {
           console.log('Write failed: ' + e.toString());
-          file_io.op_done = true;
+          file_io.setState(operate.RESET);
         };
         var value = file_io.text;
         console.log("save:text="+ file_io.text);
@@ -133,7 +168,7 @@ var file_io = {
            file_io.text = this.result;
            console.log("loaddone:"+file_io.text);
            console.log(file_io);
-           file_io.op_done = true;
+           file_io.setState(operate.RESET);
          };
          reader.readAsText(file);
       }, onLoadError);
@@ -146,7 +181,7 @@ var file_io = {
 
       fileEntry.remove(function() {
         console.log('File removed.');
-        file_io.op_done = true;
+        file_io.setState(operate.RESET);
       }, onError);
     }, onError);
   },
