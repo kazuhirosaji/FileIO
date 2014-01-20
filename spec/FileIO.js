@@ -1,30 +1,39 @@
+var waitsStable = function() {
+    waitsFor(function() {
+      return file_io.isStable();
+    }, "file operation can't done", 3000);
+};
+
 describe("FileIO", function() {
   beforeEach(function() {
-    file_io.init("test.txt");
+    file_io.init("test.txt", 1024*1024);
 /*waitsFor‚ÍA“n‚µ‚½ŠÖ”‚ªtrue‚ğ•Ô‚·‚©w’è‚µ‚½ƒ^ƒCƒ€ƒAƒEƒg‚Ü‚Å‘Ò‚Â
 runs‚É“n‚µ‚½ŠÖ”‚Í’x‰„•]‰¿‚³‚ê‚é
 waitsFor‚ÌŒ‹‰Ê‚ğ‘Ò‚Âê‡‚Íruns‚ğg‚¤
 setUp‚ÆtearDown‚ª–³‚¢‚Ì‚ÅAruns‚ğÅ‰‚ÆÅŒã‚Ég‚¤
 waitsFor‚ğŠÜ‚ŞitˆÈ~‚Ìdescribe“à‚Ìit‚Í’x‰„•]‰¿‚³‚ê‚é*/
-    waitsFor(function() {
-      return file_io.isStable();
-    }, "file io can't init", 1000);
+    waitsStable();
+  });
+
+  it("‰Šú‰»Š®—¹‚ÌŠm”F", function() {
+    runs(function() {
+      expect(file_io.grantedBytes).toEqual(1024*1024)
+    });
   });
 
   it("‹ó•¶š‚Åƒtƒ@ƒCƒ‹ã‘‚«‚ª‚Å‚«‚é", function() {
-    file_io.setText("");
-    file_io.fileOperation(OPERATE.SAVE);
-    waitsFor(function() {
-      return file_io.isStable();
-    }, "file operation can't done", 3000);
+    runs(function() {
+      file_io.setText("");
+      file_io.fileOperation(OPERATE.SAVE);
+    });
+
+    waitsStable();
 
     runs(function() {
      file_io.fileOperation(OPERATE.LOAD);
     });
-
-    waitsFor(function() {
-      return file_io.isStable();
-    }, "file operation can't done", 3000);
+    
+    waitsStable();
 
     runs(function () {
   		expect(file_io.getText()).toEqual("");
@@ -34,9 +43,8 @@ waitsFor‚ğŠÜ‚ŞitˆÈ~‚Ìdescribe“à‚Ìit‚Í’x‰„•]‰¿‚³‚ê‚é*/
   it("•Û‘¶‚µ‚½•¶š—ñ‚ğ“Ç‚İ‚ß‚é", function() {
     file_io.setText("saving text");
     file_io.fileOperation(OPERATE.SAVE);
-    waitsFor(function() {
-      return file_io.isStable();
-    }, "file operation can't done", 3000);
+
+    waitsStable();
 
     runs(function() {
       file_io.setText("");
@@ -45,9 +53,7 @@ waitsFor‚ğŠÜ‚ŞitˆÈ~‚Ìdescribe“à‚Ìit‚Í’x‰„•]‰¿‚³‚ê‚é*/
       file_io.fileOperation(OPERATE.LOAD);
     });
 
-    waitsFor(function() {
-      return file_io.isStable();
-    }, "file operation can't done", 3000);
+    waitsStable();
 
     runs(function () {
       expect(file_io.getText()).toEqual("saving text");
@@ -58,18 +64,16 @@ waitsFor‚ğŠÜ‚ŞitˆÈ~‚Ìdescribe“à‚Ìit‚Í’x‰„•]‰¿‚³‚ê‚é*/
   it("ã‘‚«Œã‚Ìƒtƒ@ƒCƒ‹“Ç‚İ‚İ", function() {
     file_io.setText("saving text");
     file_io.fileOperation(OPERATE.SAVE);
-    waitsFor(function() {
-      return file_io.isStable();
-    }, "file operation can't done", 3000);
+
+    waitsStable();
+
     // save second time
     runs(function () {
       file_io.setText("2nd time saving text!");
       file_io.fileOperation(OPERATE.SAVE);
     });
 
-    waitsFor(function() {
-      return file_io.isStable();
-    }, "file operation can't done", 3000);
+    waitsStable();
 
     runs(function () {
       file_io.setText("");
@@ -77,9 +81,8 @@ waitsFor‚ğŠÜ‚ŞitˆÈ~‚Ìdescribe“à‚Ìit‚Í’x‰„•]‰¿‚³‚ê‚é*/
       file_io.fileOperation(OPERATE.LOAD);
     });
     // load
-    waitsFor(function() {
-      return file_io.isStable();
-    }, "file operation can't done", 3000);
+
+    waitsStable();
 
     runs(function () {
       expect(file_io.getText()).toEqual("2nd time saving text!");
@@ -91,25 +94,19 @@ waitsFor‚ğŠÜ‚ŞitˆÈ~‚Ìdescribe“à‚Ìit‚Í’x‰„•]‰¿‚³‚ê‚é*/
     file_io.setText("saving text");
     file_io.fileOperation(OPERATE.SAVE);
 
-    waitsFor(function() {
-      return file_io.isStable();
-    }, "file operation can't done", 3000);
+    waitsStable();
 
     runs (function() {
       file_io.fileOperation(OPERATE.REMOVE);
     });
 
-    waitsFor(function() {
-      return file_io.isStable();
-    }, "file operation can't done", 3000);
+    waitsStable();
 
     runs (function() {
       file_io.fileOperation(OPERATE.LOAD);
     });
 
-    waitsFor(function() {
-      return file_io.isStable();
-    }, "file operation can't done", 3000);
+    waitsStable();
 
     runs (function() {
      expect(file_io.getText()).toEqual("text empty");
@@ -118,17 +115,13 @@ waitsFor‚ğŠÜ‚ŞitˆÈ~‚Ìdescribe“à‚Ìit‚Í’x‰„•]‰¿‚³‚ê‚é*/
      file_io.fileOperation(OPERATE.SAVE);
     });
 
-    waitsFor(function() {
-      return file_io.isStable();
-    }, "file operation can't done", 3000);
+    waitsStable();
     
     runs (function() {
       file_io.fileOperation(OPERATE.LOAD);
     });
 
-    waitsFor(function() {
-      return file_io.isStable();
-    }, "file operation can't done", 3000);
+    waitsStable();
 
     runs(function() {
       expect(file_io.getText()).toEqual("saving text after remove");

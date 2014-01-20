@@ -30,13 +30,13 @@ var file_io = {
   file : "",
   state : STATE.UNINIT,
 
-  init : function(file) {
+  init : function(file, size) {
     this.grantedBytes = 0,
     this.state = STATE.UNINIT;
     this.file = file;
     console.log(this);
     window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
-    navigator.webkitPersistentStorage.requestQuota (1024*1024*1024, function(bytes) {
+    navigator.webkitPersistentStorage.requestQuota (size, function(bytes) {
       file_io.initDone(bytes);
     }, onError);
   },
@@ -48,8 +48,8 @@ var file_io = {
   },
 
   setText : function(text) {
-    this.text = text;
     console.log("setText:"+ this.text);
+    this.text = text;
   },
 
   getText : function() {
