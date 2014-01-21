@@ -7,7 +7,7 @@ var OPERATE = {
 
 var STATE = {
   UNINIT : 0,
-  STABLE : 1,
+  READY : 1,
   LOADING : 2,
   TRUNCATING : 3,
   SAVING : 4,
@@ -44,7 +44,7 @@ var file_io = {
   initDone : function(bytes) {
     console.log ('requestQuota: ', arguments);
     this.grantedBytes = bytes;
-    this.state = STATE.STABLE;
+    this.state = STATE.READY;
   },
 
   setText : function(text) {
@@ -78,17 +78,17 @@ var file_io = {
         this.state = STATE.REMOVING;
         break;
       case OPERATE.DONE:
-        this.state = STATE.STABLE;
+        this.state = STATE.READY;
         break;
       default:
-        this.state = STATE.STABLE;
+        this.state = STATE.READY;
         console.log("Error: unexpected type="+ type);
         break;
     }
   },
 
-  isStable : function() {
-    if (this.state == STATE.STABLE) {
+  isReady : function() {
+    if (this.state == STATE.READY) {
       return true;
     }
     return false;

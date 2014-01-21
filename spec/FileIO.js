@@ -1,6 +1,6 @@
-var waitsStable = function() {
+var waitsReady = function() {
     waitsFor(function() {
-      return file_io.isStable();
+      return file_io.isReady();
     }, "file operation can't done", 3000);
 };
 
@@ -12,7 +12,7 @@ runs‚É“n‚µ‚½ŠÖ”‚Í’x‰„•]‰¿‚³‚ê‚é
 waitsFor‚ÌŒ‹‰Ê‚ğ‘Ò‚Âê‡‚Íruns‚ğg‚¤
 setUp‚ÆtearDown‚ª–³‚¢‚Ì‚ÅAruns‚ğÅ‰‚ÆÅŒã‚Ég‚¤
 waitsFor‚ğŠÜ‚ŞitˆÈ~‚Ìdescribe“à‚Ìit‚Í’x‰„•]‰¿‚³‚ê‚é*/
-    waitsStable();
+    waitsReady();
   });
 
   it("‰Šú‰»Š®—¹‚ÌŠm”F", function() {
@@ -27,13 +27,13 @@ waitsFor‚ğŠÜ‚ŞitˆÈ~‚Ìdescribe“à‚Ìit‚Í’x‰„•]‰¿‚³‚ê‚é*/
       file_io.fileOperation(OPERATE.SAVE);
     });
 
-    waitsStable();
+    waitsReady();
 
     runs(function() {
      file_io.fileOperation(OPERATE.LOAD);
     });
     
-    waitsStable();
+    waitsReady();
 
     runs(function () {
   		expect(file_io.getText()).toEqual("");
@@ -44,7 +44,7 @@ waitsFor‚ğŠÜ‚ŞitˆÈ~‚Ìdescribe“à‚Ìit‚Í’x‰„•]‰¿‚³‚ê‚é*/
     file_io.setText("saving text");
     file_io.fileOperation(OPERATE.SAVE);
 
-    waitsStable();
+    waitsReady();
 
     runs(function() {
       file_io.setText("");
@@ -53,7 +53,7 @@ waitsFor‚ğŠÜ‚ŞitˆÈ~‚Ìdescribe“à‚Ìit‚Í’x‰„•]‰¿‚³‚ê‚é*/
       file_io.fileOperation(OPERATE.LOAD);
     });
 
-    waitsStable();
+    waitsReady();
 
     runs(function () {
       expect(file_io.getText()).toEqual("saving text");
@@ -65,7 +65,7 @@ waitsFor‚ğŠÜ‚ŞitˆÈ~‚Ìdescribe“à‚Ìit‚Í’x‰„•]‰¿‚³‚ê‚é*/
     file_io.setText("saving text");
     file_io.fileOperation(OPERATE.SAVE);
 
-    waitsStable();
+    waitsReady();
 
     // save second time
     runs(function () {
@@ -73,7 +73,7 @@ waitsFor‚ğŠÜ‚ŞitˆÈ~‚Ìdescribe“à‚Ìit‚Í’x‰„•]‰¿‚³‚ê‚é*/
       file_io.fileOperation(OPERATE.SAVE);
     });
 
-    waitsStable();
+    waitsReady();
 
     runs(function () {
       file_io.setText("");
@@ -82,7 +82,7 @@ waitsFor‚ğŠÜ‚ŞitˆÈ~‚Ìdescribe“à‚Ìit‚Í’x‰„•]‰¿‚³‚ê‚é*/
     });
     // load
 
-    waitsStable();
+    waitsReady();
 
     runs(function () {
       expect(file_io.getText()).toEqual("2nd time saving text!");
@@ -94,19 +94,19 @@ waitsFor‚ğŠÜ‚ŞitˆÈ~‚Ìdescribe“à‚Ìit‚Í’x‰„•]‰¿‚³‚ê‚é*/
     file_io.setText("saving text");
     file_io.fileOperation(OPERATE.SAVE);
 
-    waitsStable();
+    waitsReady();
 
     runs (function() {
       file_io.fileOperation(OPERATE.REMOVE);
     });
 
-    waitsStable();
+    waitsReady();
 
     runs (function() {
       file_io.fileOperation(OPERATE.LOAD);
     });
 
-    waitsStable();
+    waitsReady();
 
     runs (function() {
      expect(file_io.getText()).toEqual("text empty");
@@ -115,13 +115,13 @@ waitsFor‚ğŠÜ‚ŞitˆÈ~‚Ìdescribe“à‚Ìit‚Í’x‰„•]‰¿‚³‚ê‚é*/
      file_io.fileOperation(OPERATE.SAVE);
     });
 
-    waitsStable();
+    waitsReady();
     
     runs (function() {
       file_io.fileOperation(OPERATE.LOAD);
     });
 
-    waitsStable();
+    waitsReady();
 
     runs(function() {
       expect(file_io.getText()).toEqual("saving text after remove");
