@@ -7,11 +7,6 @@ var waitsReady = function() {
 describe("FileIO", function() {
   beforeEach(function() {
     file_io.init("test.txt", 1024*1024);
-/*waitsForは、渡した関数がtrueを返すか指定したタイムアウトまで待つ
-runsに渡した関数は遅延評価される
-waitsForの結果を待つ場合はrunsを使う
-setUpとtearDownが無いので、runsを最初と最後に使う
-waitsForを含むit以降のdescribe内のitは遅延評価される*/
     waitsReady();
   });
 

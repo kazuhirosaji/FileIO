@@ -29,12 +29,14 @@ var file_io = {
   grantedBytes : 0,
   file : "",
   state : STATE.UNINIT,
+  callback_func : 0,
 
   init : function(file, size) {
     this.grantedBytes = 0,
     this.state = STATE.UNINIT;
     this.file = file;
     console.log(this);
+    console.log("init");
     window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
     navigator.webkitPersistentStorage.requestQuota (size, function(bytes) {
       file_io.initDone(bytes);
@@ -54,6 +56,10 @@ var file_io = {
 
   getText : function() {
     return this.text;
+  },
+
+  setCallBack : function(func) {
+    this.callback_func = func;
   },
 
   fileOperation : function(type) {
@@ -189,6 +195,9 @@ var file_io = {
            console.log("loaddone:"+file_io.text);
            console.log(file_io);
            file_io.setState(OPERATE.DONE);
+           if (file_io.callback_func) {
+             file_io.callback_func();
+           }
          };
          reader.readAsText(file);
       }, onLoadError);
