@@ -58,6 +58,10 @@ var file_io = {
 
   fileOperation : function(type) {
     console.log("fileOperation:"+ type);
+    if (!this.canOperate(type)) {
+      console.log("Operation not ready");
+      return;
+    }
     this.setState(type);
     window.webkitRequestFileSystem(window.PERSISTENT, this.grantedBytes, this.onInitFs, onError);
   },
@@ -89,6 +93,15 @@ var file_io = {
 
   isReady : function() {
     if (this.state == STATE.READY) {
+      return true;
+    }
+    return false;
+  },
+
+  canOperate : function(type) {
+    if (this.isReady()) {
+      return true;
+    } else if (this.state == STATE.TRUNCATING && type == OPERATE.SAVE) {
       return true;
     }
     return false;
